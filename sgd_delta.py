@@ -1,119 +1,51 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# ==========================================
-# Input and Target
-# ==========================================
-
-X = np.array([
-    [0, 0, 1],
-    [0, 1, 1],
-    [1, 0, 1],
-    [1, 1, 1]
-], dtype=float)
-
+X = np.array([[0,0,1],[0,1,1],[1,0,1],[1,1,1]], dtype=float)
 D = np.array([0, 0, 1, 1], dtype=float)
 
-
-# ==========================================
-# Initial Parameters
-# ==========================================
-
-# Initial weights
 W = np.zeros(3)
-
-# Learning rate
 lr = 0.1
-
-# Maximum number of epochs
-max_epochs = 100
-
-# Store error of each epoch
 errors = []
-
-
-# ==========================================
-# SGD Delta Learning Rule
-# ==========================================
-
-for epoch in range(max_epochs):
-
+for epoch in range(100):
     total_error = 0
-
     for i in range(len(X)):
-
-        # Calculate output
         y = np.dot(W, X[i])
-
-        # Calculate error
         e = D[i] - y
+        W += lr * e * X[i]        # Delta rule
+        total_error += e**2
 
-        # Delta rule weight update
-        W = W + lr * e * X[i]
-
-        # Squared error
-        total_error += e ** 2
-
-    # Mean Squared Error
-    mse = total_error / len(X)
-
-    errors.append(mse)
-
-    # Check convergence
-    if total_error < 0.0001:
-        print("Converged at epoch:", epoch + 1)
+    errors.append(0.5 * total_error)
+    if total_error < 1e-4:
+        print(f"Converged at epoch {epoch+1}")
         break
 
-
-# ==========================================
-# Final Weights
-# ==========================================
-
-print("\nFinal Weights:")
-print(W)
-
-
-# ==========================================
-# Convergence Curve
-# ==========================================
-
-plt.figure(figsize=(7, 4))
-
-plt.plot(
-    range(1, len(errors) + 1),
-    errors,
-    marker='o'
-)
-
-plt.title("SGD Convergence using Delta Learning Rule")
-plt.xlabel("Epoch")
-plt.ylabel("Mean Squared Error (MSE)")
-
-plt.grid(True)
-plt.show()
-
-
-# ==========================================
-# Testing
-# ==========================================
-
-print("\nTesting Results")
-print("=" * 50)
-
-print(f"{'Input':>12} | {'Target':>6} | {'Output':>10} | {'Predicted':>9}")
-print("-" * 50)
+print("Final W:", W)
+plt.plot(range(1, len(errors)+1), errors, marker='o')
+plt.title("SGD Convergence (MSE vs Epoch)")
+plt.xlabel("Epoch"); plt.ylabel("Error")
+plt.grid(True); plt.show()
+x1_vals = np.linspace(-0.5, 1.5, 100)
+x2_vals = -(W[0]*x1_vals + W[2]) / W[1]
 
 for i in range(len(X)):
+    color = 'green' if D[i] == 1 else 'red'
+    marker = '^' if D[i] == 1 else 'o'
+    plt.scatter(X[i][0], X[i][1], color=color, marker=marker, s=150, zorder=5)
+    plt.annotate(f"({int(X[i][0])},{int(X[i][1])})→{int(D[i])}",
+                 (X[i][0]+0.03, X[i][1]+0.03))
 
-    # Calculate output
-    output = np.dot(W, X[i])
-
-    # Convert continuous output into 0 or 1
-    predicted = 1 if output >= 0.5 else 0
-
-    print(
-        f"{str(X[i][:2]):>12} | "
-        f"{int(D[i]):>6} | "
-        f"{output:>10.4f} | "
-        f"{predicted:>9}"
-    )
+plt.plot(x1_vals, x2_vals, 'k-', linewidth=2, label="Decision Boundary")
+plt.xlim(-0.5, 1.5); plt.ylim(-0.5, 1.5)
+plt.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+plt.axvline(0, color='gray', linestyle='--', linewidth=0.8)
+plt.title("Decision Boundary — SGD Delta Rule")
+plt.xlabel("x1"); plt.ylabel("x2")
+plt.legend(); plt.grid(True); plt.show()
+print(f"{'Input':>12} | {'Target':>6} | {'Output':>8} | {'Correct':>8}")
+print("-" * 45)
+for i in range(len(X)):
+    out = np.dot(W, X[i])
+    predicted = 1 if out >= 0.5 else 0
+    correct = "Yes" if predicted == int(D[i]) else "No"
+    print(f"{str(X[i][:2]):>12} | {int(D[i]):>6} | {out:>8.4f} | {correct:>8}")
