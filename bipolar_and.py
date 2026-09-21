@@ -228,3 +228,109 @@ for i in range(len(X)):
     )
 
 print("=" * 40)
+
+
+
+
+
+
+//short 
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Bipolar AND data
+X = np.array([[-1,-1], [-1,1], [1,-1], [1,1]])
+T = np.array([-1,-1,-1,1])
+
+# Parameters
+lr = 0.1
+W = np.zeros(2)
+b = 0
+errors = []
+
+# Bipolar step function
+def step(n):
+    return 1 if n >= 0 else -1
+
+# Training
+for epoch in range(100):
+    total = 0
+
+    for x, t in zip(X, T):
+        y = step(np.dot(x, W) + b)
+        e = t - y
+
+        W += lr * e * x
+        b += lr * e
+        total += abs(e)
+
+    errors.append(total)
+
+    if total == 0:
+        print("Converged at Epoch:", epoch + 1)
+        break
+
+print("\nInput:\n", X)
+print("\nTarget:", T)
+print("\nFinal Weights:", W)
+print("Final Bias:", b)
+
+# =========================
+# Convergence Curve
+# =========================
+plt.figure(figsize=(6,4))
+plt.plot(range(1,len(errors)+1), errors, 'o-', linewidth=2)
+plt.title("Convergence Curve")
+plt.xlabel("Epoch")
+plt.ylabel("Total Error")
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+# =========================
+# Decision Boundary
+# =========================
+plt.figure(figsize=(6,6))
+
+for x, t in zip(X, T):
+    plt.scatter(
+        x[0], x[1],
+        color='green' if t == 1 else 'red',
+        marker='^' if t == 1 else 'o',
+        s=150
+    )
+    plt.annotate(f"({x[0]},{x[1]}) → {t}",
+                 (x[0]+0.05, x[1]+0.05))
+
+x1 = np.linspace(-2, 2, 100)
+
+if W[1] != 0:
+    x2 = -(W[0]*x1 + b) / W[1]
+    plt.plot(x1, x2, 'k-', linewidth=2,
+             label="Decision Boundary")
+
+plt.axhline(0, color='gray', linestyle='--')
+plt.axvline(0, color='gray', linestyle='--')
+
+plt.xlim(-2,2)
+plt.ylim(-2,2)
+plt.xlabel("x1")
+plt.ylabel("x2")
+plt.title("Decision Boundary — Bipolar AND")
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+# =========================
+# Testing / Output
+# =========================
+print("\n" + "="*40)
+print(f"{'x1':>5} {'x2':>5} {'Target':>10} {'Output':>10}")
+print("="*40)
+
+for x, t in zip(X, T):
+    y = step(np.dot(x, W) + b)
+    print(f"{x[0]:>5} {x[1]:>5} {t:>10} {y:>10}")
+
+print("="*40)
